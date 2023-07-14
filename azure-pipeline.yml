@@ -39,7 +39,7 @@ jobs:
       addToPath: true
 
   - script: |
-      brew install fastlane -NV
+      brew install fastlane
     displayName: 'Install Fastlane'
 
   - script: |
