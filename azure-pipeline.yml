@@ -32,9 +32,9 @@ jobs:
 
 
   - ${{ if eq(variables['Build.SourceBranchName'], 'main') }}:
-    - script: |
-      brew install gnu-sed
-    displayName: 'Install gsed'
+  
+    - script: brew install gnu-sed
+      displayName: 'Install gsed'
 
     - script: |
         cd android-test
