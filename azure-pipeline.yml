@@ -9,8 +9,8 @@ trigger:
       - gradle.properties
 
 variables:
-  - group: Pipeline_vars
-
+  - group: Mobile-Apps
+  
 resources:
     repositories:
     - repository: test-app # Required as first property. Alias for the repository.
