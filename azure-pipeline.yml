@@ -29,15 +29,15 @@ jobs:
     persistCredentials: true
     fetchTags: true
 
-
+  - script: echo "Non main step"
 
   - ${{ if eq(variables['Build.SourceBranchName'], 'main') }}:
-  
+
     - script: brew install gnu-sed
       displayName: 'Install gsed'
 
     - script: |
-        cd android-test
+        cd android-mobile-gradle
         git fetch --all --tags
         LAST_TAG=$(git tag | tail -n 1)
         IFS='.' read -ra VERSION_PARTS <<< "$LAST_TAG"
