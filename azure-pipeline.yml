@@ -29,109 +29,106 @@ jobs:
     persistCredentials: true
     fetchTags: true
 
-  - script: |
+
+
+  - ${{ if eq(variables['Build.SourceBranchName'], 'main') }}:
+    - script: |
       brew install gnu-sed
     displayName: 'Install gsed'
 
-  - task: UseRubyVersion@0
-    inputs:
-      versionSpec: '>= 2.6'
-      addToPath: true
+    - script: |
+        cd android-test
+        git fetch --all --tags
+        LAST_TAG=$(git tag | tail -n 1)
+        IFS='.' read -ra VERSION_PARTS <<< "$LAST_TAG"
+        MAJOR=${VERSION_PARTS[0]#v}
+        MINOR=${VERSION_PARTS[1]}
+        PATCH=${VERSION_PARTS[2]}
+        BUILD=${VERSION_PARTS[3]}
+    
+        VERSION_NAME=$(grep "VERSION_NAME" gradle.properties | cut -d'=' -f2)
+        VERSION_CODE=$(grep "VERSION_CODE" gradle.properties | cut -d'=' -f2)
 
-  - script: |
-      brew install fastlane
-    displayName: 'Install Fastlane'
-
-  - script: |
-      cd $(Build.Repository.LocalPath)/android-mobile-gradle
-      fastlane android build_and_deploy
-    env:
-      APP_CENTER_API_TOKEN: $(APP_CENTER_API_TOKEN)
-    displayName: 'Build and Deploy to App Center'
-
-  - script: |
-      cd android-test
-      git fetch --all --tags
-      LAST_TAG=$(git tag | tail -n 1)
-      IFS='.' read -ra VERSION_PARTS <<< "$LAST_TAG"
-      MAJOR=${VERSION_PARTS[0]#v}
-      MINOR=${VERSION_PARTS[1]}
-      PATCH=${VERSION_PARTS[2]}
-      BUILD=${VERSION_PARTS[3]}
-  
-      VERSION_NAME=$(grep "VERSION_NAME" gradle.properties | cut -d'=' -f2)
-      VERSION_CODE=$(grep "VERSION_CODE" gradle.properties | cut -d'=' -f2)
-
-      PATCH=$((PATCH+1))
-      BUILD=$((BUILD+1))
+        PATCH=$((PATCH+1))
+        BUILD=$((BUILD+1))
 
 
+        if [[ $PATCH -eq 9 ]]; then
+          MINOR=$((MINOR+1))
+          PATCH=0
+        fi
 
-      if [[ $PATCH -eq 9 ]]; then
-        MINOR=$((MINOR+1))
-        PATCH=0
-      fi
+        if [[ $MINOR -eq 9 ]]; then
+          MAJOR=$((MAJOR+1))
+          MINOR=0
+        fi
 
-      if [[ $MINOR -eq 9 ]]; then
-        MAJOR=$((MAJOR+1))
-        MINOR=0
-      fi
+        NEW_TAG="${MAJOR}.${MINOR}.${PATCH}.${BUILD}"
+        NEW_TAG="${NEW_TAG// /}"
+        NEW_VERSION_NAME="${MAJOR}.${MINOR}.${PATCH}"
+        NEW_VERSION_CODE="${BUILD}"
+        
 
-      NEW_TAG="${MAJOR}.${MINOR}.${PATCH}.${BUILD}"
-      NEW_TAG="${NEW_TAG// /}"
-      NEW_VERSION_NAME="${MAJOR}.${MINOR}.${PATCH}"
-      NEW_VERSION_CODE="${BUILD}"
-      echo $NEW_VERSION_NAME
-      echo $NEW_VERSION_CODE
-      echo "##vso[task.setvariable variable=NEW_TAG]$NEW_TAG"
-      cat ./gradle.properties
-      gsed -i "s/${VERSION_NAME}/${NEW_VERSION_NAME}/" ./gradle.properties
-      gsed -i "s/${VERSION_CODE}/${NEW_VERSION_CODE}/" ./gradle.properties
-      echo "testtt"
-      cat ./gradle.properties
-      git config --global user.email "cchiriac518@gmail.com"
-      git config --global user.name "cchiriac518"
-      echo $NEW_TAG > version.txt
-      git add version.txt gradle.properties
-      git commit -m "Update app version"
-      git push origin HEAD:$(Build.SourceBranch)
-      echo "##vso[task.setvariable variable=OLD_APP_VERSION]$LAST_TAG"
+        gsed -i "s/${VERSION_NAME}/${NEW_VERSION_NAME}/" ./gradle.properties
+        gsed -i "s/${VERSION_CODE}/${NEW_VERSION_CODE}/" ./gradle.properties
 
-    displayName: 'Get Last Tag and Increment Minor Version'
+        git config --global user.email "az-pipeline@gmail.com"
+        git config --global user.name "az-pipeline"
 
-  - script: |
-      cd android-test
-      echo "Creating Git tag $NEW_TAG"
-      git tag $NEW_TAG
-      git push origin --tags
-    displayName: 'Create Git Tag and Push'
+        echo $NEW_TAG > version.txt
+        git add version.txt gradle.properties
+        git commit -m "Update app version"
+        git push origin HEAD:$(Build.SourceBranch)
+        echo "##vso[task.setvariable variable=NEW_TAG]$NEW_TAG"
+        echo "##vso[task.setvariable variable=OLD_APP_VERSION]$LAST_TAG"
+
+      displayName: 'Get Last Tag and Increment Minor Version'
+
+    - script: |
+        cd android-test
+        echo "Creating Git tag $NEW_TAG"
+        git tag $NEW_TAG
+        git push origin --tags
+      displayName: 'Create Git Tag and Push'
+
+    - checkout: test-app
+      persistCredentials: true
+      fetchTags: true
+
+    - script: |
+        cd library-test
+        git fetch --all
+        git checkout develop
+        git config --global user.email "az-pipeline@gmail.com"
+        git config --global user.name "az-pipeline"
+
+        SDK_VERSION=$(grep -oE "com\.github\.test-android-sdk:[0-9]+(\.[0-9]+)+\.[0-9]+" build.gradle | awk -F ":" '{print $2}')
+        gsed -i "s/${SDK_VERSION}/${NEW_TAG}/" ./build.gradle
+        git add .
+        git commit -m "Updated android-sdk dependency version"
+        git push
+      displayName: 'Modify file and commit changes'
 
 
-  # - script: |
-  #     echo "##vso[task.setvariable variable=OLD_APP_VERSION]$LAST_TAG"
-  #     echo "##vso[task.setvariable variable=APP_VERSION]$NEW_TAG"
-  #   displayName: 'Set Pipeline Variable for Version Tracking'
 
-  - checkout: test-app
-    persistCredentials: true
-    fetchTags: true
 
-  - script: |
-      cd library-test
-      git fetch --all
-      git branch --list
-      echo $NEW_TAG
-      SDK_VERSION=$(grep -oE "com\.github\.test-android-sdk:[0-9]+(\.[0-9]+)+\.[0-9]+" build.gradle | awk -F ":" '{print $2}')
-      echo $SDK_VERSION
-      gsed -i "s/${SDK_VERSION}/${NEW_TAG}/" ./build.gradle
-      cat build.gradle
-      git config --global user.email "cchiriac518@gmail.com"
-      git config --global user.name "cchiriac518"
-      git add .
-      git checkout develop
-      git commit -m "Updated android-sdk version"
-      git push
-    displayName: 'Modify file and commit changes'
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 # trigger:
