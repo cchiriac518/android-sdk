@@ -85,7 +85,7 @@ jobs:
       displayName: 'Get Last Tag and Increment Minor Version'
 
     - script: |
-        cd android-test
+        cd android-mobile-gradle
         echo "Creating Git tag $NEW_TAG"
         git tag $NEW_TAG
         git push origin --tags
