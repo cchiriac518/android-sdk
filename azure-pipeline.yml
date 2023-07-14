@@ -10,7 +10,7 @@ trigger:
 
 variables:
   - group: Mobile-Apps
-  
+
 resources:
     repositories:
     - repository: test-app # Required as first property. Alias for the repository.
@@ -20,7 +20,7 @@ resources:
       type: github # Type of repository: git, github, githubenterprise, and bitbucket.
 
 jobs:
-- job: Build android app
+- job: BuildAndroidApp
   displayName: 'Build Android app'
   pool:
     vmImage: 'macOS-11'
