@@ -13,11 +13,11 @@ variables:
 
 resources:
     repositories:
-    - repository: test-app # Required as first property. Alias for the repository.
+    - repository: test-app
       endpoint: github_sc
       name: cchiriac518/library-test
-      ref: refs/heads/develop # ref name to checkout; defaults to 'refs/heads/main'. The branch checked out by default whenever the resource trigger fires.
-      type: github # Type of repository: git, github, githubenterprise, and bitbucket.
+      ref: refs/heads/develop
+      type: github
 
 jobs:
 - job: BuildAndroidApp
@@ -109,6 +109,15 @@ jobs:
         git push
       displayName: 'Modify file and commit changes'
 
+    - script: |
+            echo "Setting up GitHub CLI"
+            echo $(GITHUB_TOKEN) > gh-token.txt
+            gh auth login --with-token < gh-token.txt
+            rm gh-token.txt
+            git fetch --all --tags
+            echo "Creating PR main->develop"
+            gh pr create --base develop --head $(Build.SourceBranch) --title "AZ pipeline PR v$NEW_TAG" --body "Update develop branch with version $NEW_TAG"
+          displayName: 'Create PR to update develop branch with new version'
 
 
 
