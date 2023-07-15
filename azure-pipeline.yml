@@ -110,6 +110,7 @@ jobs:
       displayName: 'Modify file and commit changes'
 
     - script: |
+        cd android-mobile-gradle
         echo "Setting up GitHub CLI"
         echo $(GITHUB_TOKEN) > gh-token.txt
         gh auth login --with-token < gh-token.txt
