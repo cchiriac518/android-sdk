@@ -22,7 +22,7 @@ resources:
 
 jobs:
 - job: BuildAndroidApp
-  displayName: 'Build Android application'
+  displayName: 'Build Android app'
   pool:
     vmImage: 'macOS-11'
   steps:
