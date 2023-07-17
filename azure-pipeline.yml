@@ -16,7 +16,7 @@ resources:
     repositories:
     - repository: test-app
       endpoint: github_sc
-      name: cchiriac518/library-test
+      name: cchiriac518/android-app
       ref: refs/heads/develop
       type: github
 
@@ -39,7 +39,7 @@ jobs:
       displayName: 'Install gsed'
 
     - script: |
-        cd android-mobile-gradle
+        cd android-sdk
         git fetch --all --tags
         LAST_TAG=$(git tag | tail -n 1)
         IFS='.' read -ra VERSION_PARTS <<< "$LAST_TAG"
@@ -87,7 +87,7 @@ jobs:
       displayName: 'Get Last Tag and Increment Minor Version'
 
     - script: |
-        cd android-mobile-gradle
+        cd android-sdk
         echo "Creating Git tag $NEW_TAG"
         git tag $NEW_TAG
         git push origin --tags
@@ -98,7 +98,7 @@ jobs:
       fetchTags: true
 
     - script: |
-        cd library-test
+        cd android-app
         git fetch --all
         git checkout develop
         git config --global user.email "az-pipeline@gmail.com"
@@ -112,7 +112,7 @@ jobs:
       displayName: 'Modify file and commit changes'
 
     - script: |
-        cd android-mobile-gradle
+        cd android-sdk
         echo "Setting up GitHub CLI"
         echo $(GITHUB_TOKEN) > gh-token.txt
         gh auth login --with-token < gh-token.txt
