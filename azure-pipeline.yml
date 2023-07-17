@@ -31,7 +31,7 @@ jobs:
     fetchTags: true
 
   - script: echo "Step for all branches"
-    displayName: 'Step for all braches'
+    displayName: 'Step for all branches'
 
   - ${{ if eq(variables['Build.SourceBranchName'], 'main') }}:
 
