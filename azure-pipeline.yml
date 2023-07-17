@@ -30,8 +30,11 @@ jobs:
     persistCredentials: true
     fetchTags: true
 
-  - script: echo "Step for all branches"
-    displayName: 'Step for all branches'
+  - script: echo "Build App"
+    displayName: 'Build App'
+    
+  - script: echo "Test App"
+    displayName: 'Test App'
 
   - ${{ if eq(variables['Build.SourceBranchName'], 'main') }}:
 
