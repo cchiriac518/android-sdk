@@ -29,7 +29,8 @@ jobs:
     persistCredentials: true
     fetchTags: true
 
-  - script: echo "Non main step"
+  - script: echo "Step for all branches"
+    displayName: 'Step for all braches'
 
   - ${{ if eq(variables['Build.SourceBranchName'], 'main') }}:
 
