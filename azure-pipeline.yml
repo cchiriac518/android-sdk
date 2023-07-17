@@ -87,14 +87,14 @@ jobs:
         echo "##vso[task.setvariable variable=NEW_TAG]$NEW_TAG"
         echo "##vso[task.setvariable variable=OLD_APP_VERSION]$LAST_TAG"
 
-      displayName: 'Get Last Tag and Increment Minor Version'
+      displayName: 'Get Last Tag and Increment Version'
 
     - script: |
         cd android-sdk
         echo "Creating Git tag $NEW_TAG"
         git tag $NEW_TAG
         git push origin --tags
-      displayName: 'Create Git Tag and Push'
+      displayName: 'Create Updated Tag and Push'
 
     - checkout: test-app
       persistCredentials: true
@@ -112,7 +112,7 @@ jobs:
         git add .
         git commit -m "Updated android-sdk dependency version"
         git push
-      displayName: 'Modify file and commit changes'
+      displayName: 'Update sdk version in main app'
 
     - script: |
         cd android-sdk
